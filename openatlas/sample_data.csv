@@ -1,0 +1,305 @@
+source,target,relationship
+GPT-4,OpenAI,created_by
+GPT-3,OpenAI,created_by
+GPT-2,OpenAI,created_by
+Codex,OpenAI,created_by
+DALL-E 3,OpenAI,created_by
+Whisper,OpenAI,created_by
+CLIP,OpenAI,created_by
+GPT-4o,OpenAI,created_by
+o1,OpenAI,created_by
+o3,OpenAI,created_by
+Claude 3,Anthropic,created_by
+Claude 2,Anthropic,created_by
+Claude 3.5 Sonnet,Anthropic,created_by
+Claude 3.5 Haiku,Anthropic,created_by
+Gemini,Google DeepMind,created_by
+Gemini Ultra,Google DeepMind,created_by
+Gemini 1.5 Pro,Google DeepMind,created_by
+Gemini 2.0 Flash,Google DeepMind,created_by
+PaLM,Google DeepMind,created_by
+AlphaFold,Google DeepMind,created_by
+BERT,Google DeepMind,created_by
+T5,Google DeepMind,created_by
+LLaMA 2,Meta AI,created_by
+Llama 3,Meta AI,created_by
+Llama 3.1,Meta AI,created_by
+Mistral,Mistral AI,created_by
+Mixtral,Mistral AI,created_by
+Mistral Large,Mistral AI,created_by
+Falcon,Technology Innovation Institute,created_by
+Phi-2,Microsoft,created_by
+Phi-3,Microsoft,created_by
+Phi-4,Microsoft,created_by
+Grok,xAI,created_by
+Grok 2,xAI,created_by
+Command R,Cohere,created_by
+Command R+,Cohere,created_by
+Stable Diffusion,Stability AI,created_by
+DeepSeek V2,DeepSeek,created_by
+DeepSeek R1,DeepSeek,created_by
+Qwen,Alibaba,created_by
+AlexNet,Deep Learning,pioneered
+ResNet,Microsoft,created_by
+GPT-4,Transformer,based_on
+GPT-3,Transformer,based_on
+GPT-2,Transformer,based_on
+GPT,Transformer,based_on
+GPT-4o,Transformer,based_on
+o1,Transformer,based_on
+Claude 3,Transformer,based_on
+Claude 2,Transformer,based_on
+Claude 3.5 Sonnet,Transformer,based_on
+Gemini,Transformer,based_on
+Gemini Ultra,Transformer,based_on
+Gemini 1.5 Pro,Transformer,based_on
+LLaMA 2,Transformer,based_on
+Llama 3,Transformer,based_on
+Llama 3.1,Transformer,based_on
+Mistral,Transformer,based_on
+Mixtral,Transformer,based_on
+BERT,Transformer,based_on
+T5,Transformer,based_on
+PaLM,Transformer,based_on
+Falcon,Transformer,based_on
+Grok,Transformer,based_on
+Command R,Transformer,based_on
+Phi-2,Transformer,based_on
+Phi-3,Transformer,based_on
+DeepSeek V2,Transformer,based_on
+DeepSeek R1,Transformer,based_on
+Qwen,Transformer,based_on
+Mixtral,MoE,uses
+Gemini Ultra,MoE,uses
+DeepSeek V2,MoE,uses
+GPT-4,GPT-3,successor_of
+GPT-3,GPT-2,successor_of
+GPT-2,GPT,successor_of
+GPT-4o,GPT-4,successor_of
+Claude 3,Claude 2,successor_of
+Claude 3.5 Sonnet,Claude 3,successor_of
+Llama 3,LLaMA 2,successor_of
+Llama 3.1,Llama 3,successor_of
+Phi-3,Phi-2,successor_of
+Phi-4,Phi-3,successor_of
+Grok 2,Grok,successor_of
+Command R+,Command R,successor_of
+DeepSeek R1,DeepSeek V2,successor_of
+GPT-4,RLHF,trained_with
+Claude 3,RLHF,trained_with
+Claude 3,Constitutional AI,trained_with
+Gemini,RLHF,trained_with
+LLaMA 2,RLHF,trained_with
+Mistral,DPO,trained_with
+Mixtral,DPO,trained_with
+Command R,RLHF,trained_with
+DeepSeek R1,Reinforcement Learning,trained_with
+Constitutional AI,Anthropic,developed_by
+Constitutional AI,Safety Research,advances
+DPO,RLHF,alternative_to
+Transformer,Attention Mechanism,uses
+Transformer,Multi-Head Attention,uses
+Transformer,Embedding,uses
+Transformer,Tokenization,requires
+Multi-Head Attention,Self-Attention,extends
+Flash Attention,Attention Mechanism,optimizes
+Flash Attention,Transformer,speeds_up
+MoE,Transformer,extends
+Mamba,State Space Model,based_on
+State Space Model,Transformer,alternative_to
+RWKV,RNN,extends
+RWKV,Transformer,alternative_to
+Transformer,LSTM,supersedes
+LSTM,RNN,extends
+RNN,Neural Network,based_on
+CNN,Neural Network,based_on
+ResNet,CNN,based_on
+AlexNet,CNN,based_on
+GAN,Neural Network,uses
+VAE,Neural Network,uses
+Diffusion Model,VAE,inspired_by
+Stable Diffusion,Diffusion Model,implements
+DALL-E 3,Diffusion Model,implements
+Graph Neural Network,Neural Network,extends
+Neural Network,Backpropagation,trained_with
+Neural Network,Gradient Descent,optimized_by
+Backpropagation,Gradient Descent,uses
+Deep Learning,Neural Network,extends
+Machine Learning,Deep Learning,includes
+Machine Learning,Reinforcement Learning,includes
+Reinforcement Learning,Neural Network,uses
+RLHF,Reinforcement Learning,uses
+LoRA,Fine-tuning,technique_for
+QLoRA,LoRA,extends
+QLoRA,Fine-tuning,technique_for
+PEFT,LoRA,implements
+PEFT,QLoRA,implements
+Fine-tuning,LLaMA 2,applied_to
+Fine-tuning,Mistral,applied_to
+Fine-tuning,Falcon,applied_to
+BPE,Tokenization,method_for
+SentencePiece,Tokenization,method_for
+GPT-4,BPE,uses
+LLaMA 2,BPE,uses
+BERT,WordPiece,uses
+CLIP,Embedding,produces
+CLIP,Image Classification,enables
+DALL-E 3,CLIP,uses
+Gemini,CLIP,uses
+RAG,Vector Database,uses
+RAG,Embedding,uses
+RAG,LangChain,used_in
+LangChain,RAG,enables
+LlamaIndex,RAG,enables
+Chain of Thought,GPT-4,improves
+Chain of Thought,Claude 3,improves
+Chain of Thought,Gemini,improves
+Prompt Engineering,GPT-4,improves
+Prompt Engineering,Claude 3,improves
+Prompt Engineering,LLaMA 2,improves
+NVIDIA,GPU,manufactures
+NVIDIA,H100,makes
+NVIDIA,A100,makes
+NVIDIA,CUDA,develops
+NVIDIA,Deep Learning,powers
+NVIDIA,PyTorch,accelerates
+NVIDIA,TensorFlow,accelerates
+AMD,GPU,manufactures
+AMD,ROCm,develops
+H100,GPU,is_a
+A100,GPU,is_a
+CUDA,GPU,runs_on
+TPU,Google DeepMind,developed_by
+Deep Learning,GPU,accelerated_by
+LLaMA 2,H100,trained_on
+GPT-4,A100,trained_on
+Gemini,TPU,trained_on
+PyTorch,LLaMA 2,runs_on
+PyTorch,Stable Diffusion,runs_on
+PyTorch,Mistral,runs_on
+PyTorch,GPT-4,used_for
+TensorFlow,BERT,runs_on
+JAX,Gemini,used_by
+JAX,PaLM,used_by
+Hugging Face,LLaMA 2,hosts
+Hugging Face,Mistral,hosts
+Hugging Face,Falcon,hosts
+Hugging Face,BERT,hosts
+Hugging Face,Stable Diffusion,hosts
+Hugging Face,Llama 3,hosts
+Hugging Face,Phi-2,hosts
+Hugging Face,DeepSeek R1,hosts
+LangChain,GPT-4,integrates
+LangChain,Claude 3,integrates
+LangChain,LLaMA 2,integrates
+LlamaIndex,LLaMA 2,built_around
+LlamaIndex,GPT-4,integrates
+LangGraph,LangChain,extends
+LangGraph,Agents,enables
+CrewAI,Agents,implements
+AutoGen,Agents,implements
+AutoGen,GPT-4,uses
+CrewAI,GPT-4,uses
+CrewAI,Claude 3,uses
+Agents,Tool Use,requires
+Agents,LLM,powered_by
+LLM,Transformer,based_on
+vLLM,LLaMA 2,serves
+vLLM,Mistral,serves
+vLLM,Falcon,serves
+vLLM,Llama 3,serves
+Ollama,LLaMA 2,runs
+Ollama,Mistral,runs
+Ollama,Phi-2,runs
+Ollama,Llama 3,runs
+Groq,LLaMA 2,accelerates
+Groq,Mistral,accelerates
+Groq,Llama 3,accelerates
+Together AI,LLaMA 2,serves
+Together AI,Mistral,serves
+Together AI,DeepSeek R1,serves
+DeepSpeed,GPT-3,trained_with
+DeepSpeed,LLaMA 2,optimizes
+GPT-3,CommonCrawl,trained_on
+LLaMA 2,CommonCrawl,trained_on
+Stable Diffusion,LAION,trained_on
+DALL-E 3,LAION,trained_on
+BERT,Wikipedia,trained_on
+Falcon,The Pile,trained_on
+Llama 3,CommonCrawl,trained_on
+GPT-4,Text Generation,enables
+GPT-4,Code Generation,enables
+GPT-4,Translation,enables
+GPT-4,Question Answering,enables
+GPT-4,Summarization,enables
+GPT-4o,Vision,enables
+GPT-4o,Text Generation,enables
+Claude 3,Text Generation,enables
+Claude 3,Code Generation,enables
+Claude 3,Question Answering,enables
+Claude 3,Summarization,enables
+Claude 3.5 Sonnet,Code Generation,enables
+Codex,Code Generation,powers
+Whisper,Speech Recognition,enables
+ResNet,Object Detection,enables
+ResNet,Image Classification,enables
+CNN,Image Classification,enables
+GAN,Image Generation,enables
+Stable Diffusion,Image Generation,enables
+DALL-E 3,Image Generation,enables
+BERT,Sentiment Analysis,enables
+BERT,Question Answering,enables
+BERT,Named Entity Recognition,enables
+T5,Translation,enables
+T5,Summarization,enables
+LLaMA 2,Text Generation,enables
+Llama 3,Text Generation,enables
+Mistral,Text Generation,enables
+AlphaFold,Protein Folding,enables
+AlphaFold,Deep Learning,uses
+Drug Discovery,Protein Folding,uses
+Drug Discovery,Deep Learning,uses
+Graph Neural Network,Drug Discovery,accelerates
+Graph Neural Network,Knowledge Graph,processes
+Knowledge Graph,Graph Neural Network,represented_by
+Mamba,Text Generation,enables
+OpenAI,Anthropic,spawned
+OpenAI,Microsoft,partnered_with
+Microsoft,OpenAI,invested_in
+Google DeepMind,Google,owned_by
+Meta AI,Meta,division_of
+Anthropic,Safety Research,focuses_on
+xAI,Elon Musk,founded_by
+Cohere,Enterprise AI,focuses_on
+Mistral AI,Open Source AI,advocates
+DeepSeek,Open Source AI,advocates
+Vector Database,Embedding,stores
+Vector Database,RAG,enables
+Pinecone,Vector Database,is_a
+Weaviate,Vector Database,is_a
+Chroma,Vector Database,is_a
+Qdrant,Vector Database,is_a
+Embedding,Transformer,component_of
+Safety Research,RLHF,uses
+Safety Research,Constitutional AI,uses
+Flash Attention,GPU,optimized_for
+DeepSpeed,GPU,optimized_for
+CUDA,PyTorch,enables
+CUDA,TensorFlow,enables
+ROCm,PyTorch,enables
+Phi-2,Text Generation,enables
+Phi-3,Text Generation,enables
+Grok,Text Generation,enables
+Command R,Text Generation,enables
+Command R,RAG,optimized_for
+Mixture of Experts,Mixtral,powers
+Mixture of Experts,Gemini Ultra,powers
+MoE,Mixture of Experts,is_a
+OpenAI API,GPT-4,exposes
+OpenAI API,GPT-4o,exposes
+Anthropic API,Claude 3,exposes
+Anthropic API,Claude 3.5 Sonnet,exposes
+Gemini API,Gemini 1.5 Pro,exposes
+o1,Chain of Thought,uses_internally
+o3,Chain of Thought,uses_internally
+DeepSeek R1,Chain of Thought,uses_internally

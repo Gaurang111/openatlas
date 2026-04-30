@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OpenAtlas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #07080f;
+    --panel:     #0d0e1a;
+    --border:    #1e2040;
+    --accent:    #00f5c4;
+    --accent2:   #ff3f6c;
+    --accent3:   #7b5ea7;
+    --text:      #c8cfe8;
+    --muted:     #4a5080;
+    --node:      #00f5c4;
+    --edge:      #1e2d5a;
+    --highlight: #ff3f6c;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    overflow: hidden;
+  }
+
+  /* ── Camera background ── */
+  #camBg {
+    position: fixed;
+    inset: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+
+  /* Vignette scrim — darker at edges, lighter at centre so camera shows through */
+  #camScrim {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 80% at 50% 50%,
+        rgba(5,6,14,0.25) 0%,
+        rgba(5,6,14,0.50) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* ── Graph canvas ── */
+  #cy {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    background: transparent !important;
+  }
+
+  /* ── Top bar ── */
+  #topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: rgba(7,8,15,0.82);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+    z-index: 20;
+  }
+
+  #topbar h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  #topbar h1 span { color: var(--accent2); }
+
+  .sep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+
+  /* Upload button */
+  #uploadBtn {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--border);
+    border: 1px solid var(--muted);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  #uploadBtn:hover { border-color: var(--accent); color: var(--accent); }
+  #csvFile { display: none; }
+
+  /* Stats */
+  #stats {
+    display: flex; gap: 16px; margin-left: auto;
+    font-size: 11px; color: var(--muted);
+  }
+  #stats span { color: var(--accent); font-weight: 700; }
+
+  /* WS status */
+  #wsStatus {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px;
+  }
+  #wsDot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent2);
+    transition: background 0.4s;
+  }
+  #wsDot.connected { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+  /* ── Side panel ── */
+  #panel {
+    position: fixed;
+    right: 0; top: 56px; bottom: 0;
+    width: 240px;
+    background: rgba(13,14,26,0.88);
+    border-left: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+  #panel.open { transform: translateX(0); }
+
+  #panelToggle {
+    position: fixed;
+    right: 0; top: 50%;
+    transform: translateY(-50%);
+    z-index: 21;
+    background: var(--border);
+    border: 1px solid var(--muted);
+    border-right: none;
+    color: var(--text);
+    font-size: 16px;
+    padding: 10px 6px;
+    cursor: pointer;
+    border-radius: 4px 0 0 4px;
+    writing-mode: vertical-rl;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+  #panelToggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  .panel-section h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* Control buttons */
+  .ctrl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .ctrl-btn {
+    background: var(--border);
+    border: 1px solid var(--muted);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 8px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,245,196,0.05); }
+  .ctrl-btn:active { transform: scale(0.96); }
+
+  /* Layout picker */
+  .layout-btn {
+    display: block; width: 100%;
+    background: var(--border);
+    border: 1px solid var(--muted);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    margin-bottom: 5px;
+    transition: all 0.15s;
+  }
+  .layout-btn:hover, .layout-btn.active {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: rgba(123,94,167,0.08);
+  }
+
+  /* ── Floating node info card ── */
+  #nodeCard {
+    position: fixed;
+    top: 70px;
+    left: 16px;
+    width: 320px;
+    background: rgba(13,14,26,0.92);
+    border: 1px solid rgba(0,245,196,0.25);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text);
+    z-index: 25;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 0 24px rgba(0,245,196,0.12), 0 4px 24px rgba(0,0,0,0.6);
+    transform: translateX(-120%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: auto;
+  }
+  #nodeCard.open { transform: translateX(0); }
+
+  #nodeCard .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+  #nodeCard .node-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  #nodeCard .card-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  #nodeCard .card-close:hover { color: var(--accent2); }
+  #nodeCard .node-meta {
+    color: var(--muted);
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+  #nodeCard .node-rels {
+    font-size: 10px;
+    line-height: 1.9;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  #nodeCard .node-rels::-webkit-scrollbar { width: 3px; }
+  #nodeCard .node-rels::-webkit-scrollbar-track { background: transparent; }
+  #nodeCard .node-rels::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── Gesture log ── */
+  #gestureLog {
+    position: fixed;
+    bottom: 20px; left: 20px;
+    background: rgba(13,14,26,0.82);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--muted);
+    z-index: 20;
+    backdrop-filter: blur(8px);
+    transition: color 0.3s;
+    min-width: 200px;
+  }
+  #gestureLog.active { color: var(--accent); border-color: rgba(0,245,196,0.3); }
+
+  /* ── Empty state ── */
+  #emptyState {
+    position: fixed;
+    inset: 56px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+    pointer-events: none;
+    gap: 12px;
+  }
+  #emptyState .big { font-size: 48px; }
+  #emptyState h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  #emptyState p { font-size: 13px; color: var(--muted); }
+
+  /* ── Gesture cursor ── */
+  #gestCursor {
+    position: fixed;
+    width: 20px; height: 20px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 30;
+    display: none;
+  }
+  #gestCursorRing {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(0,245,196,0.3);
+    animation: cursorPulse 1s ease-in-out infinite;
+  }
+  #gestCursor.on-node #gestCursorRing {
+    background: rgba(0,245,196,0.2);
+    border-color: #fff;
+    box-shadow: 0 0 16px #fff;
+  }
+  @keyframes cursorPulse {
+    0%,100% { transform: scale(1);    opacity: 1;   }
+    50%      { transform: scale(0.82); opacity: 0.6; }
+  }
+
+  /* ── Zoom indicator ── */
+  #zoomIndicator {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(13,14,26,0.82);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 11px;
+    color: var(--muted);
+    z-index: 20;
+    backdrop-filter: blur(8px);
+  }
+  #zoomIndicator span { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- Camera background -->
+<canvas id="camBg"></canvas>
+<div id="camScrim"></div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <h1>OPEN<span>ATLAS</span></h1>
+  <div class="sep"></div>
+  <label id="uploadBtn" for="csvFile">📂 Load CSV</label>
+  <input type="file" id="csvFile" accept=".csv"/>
+  <div class="sep"></div>
+  <div id="wsStatus">
+    <div id="wsDot"></div>
+    <span id="wsLabel">gesture server</span>
+  </div>
+  <div id="stats" style="display:none">
+    <div>Nodes: <span id="nodeCount">0</span></div>
+    <div>Edges: <span id="edgeCount">0</span></div>
+  </div>
+</div>
+
+<!-- Graph -->
+<div id="cy"></div>
+
+<!-- Empty state -->
+<div id="emptyState">
+  <div class="big">🕸️</div>
+  <h2>No graph loaded</h2>
+  <p>Upload a CSV with columns: source, target, relationship</p>
+</div>
+
+<!-- Side panel toggle -->
+<button id="panelToggle" onclick="togglePanel()">CONTROLS</button>
+
+<!-- Side panel -->
+<div id="panel">
+  <div class="panel-section">
+    <h3>Navigate</h3>
+    <div class="ctrl-grid">
+      <button class="ctrl-btn" onclick="cy.fit()">⊡ Fit All</button>
+      <button class="ctrl-btn" onclick="cy.reset()">↺ Reset</button>
+      <button class="ctrl-btn" onclick="cy.zoom(cy.zoom()+0.2)">＋ Zoom In</button>
+      <button class="ctrl-btn" onclick="cy.zoom(cy.zoom()-0.2)">－ Zoom Out</button>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <h3>Layout</h3>
+    <button class="layout-btn active" onclick="runLayout('cose', this)">⬡ Force (CoSE)</button>
+    <button class="layout-btn" onclick="runLayout('circle', this)">◯ Circle</button>
+    <button class="layout-btn" onclick="runLayout('grid', this)">⊞ Grid</button>
+    <button class="layout-btn" onclick="runLayout('breadthfirst', this)">⊤ Tree</button>
+    <button class="layout-btn" onclick="runLayout('concentric', this)">◎ Concentric</button>
+  </div>
+
+</div>
+
+<!-- Floating node info card -->
+<div id="nodeCard">
+  <div class="card-header">
+    <div class="node-name" id="cardName"></div>
+    <button class="card-close" onclick="closeNodeCard()">✕</button>
+  </div>
+  <div class="node-meta" id="cardMeta"></div>
+  <div class="node-rels" id="cardRels"></div>
+</div>
+
+<!-- Gesture cursor -->
+<div id="gestCursor"><div id="gestCursorRing"></div></div>
+
+<!-- Gesture log -->
+<div id="gestureLog">🖐 Waiting for gesture server…</div>
+
+<!-- Zoom indicator -->
+<div id="zoomIndicator">zoom: <span id="zoomVal">1.00</span>×</div>
+
+<script>
+// ── Cytoscape init ────────────────────────────────────────────────────────────
+const cy = cytoscape({
+  container: document.getElementById('cy'),
+  style: [
+    {
+      selector: 'node',
+      style: {
+        'background-color': '#05091a',
+        'background-opacity': 1,
+        'border-width': 2,
+        'border-color': '#00f5c4',
+        'shadow-blur': 14,
+        'shadow-color': '#00f5c4',
+        'shadow-opacity': 0.45,
+        'shadow-offset-x': 0,
+        'shadow-offset-y': 0,
+        'label': 'data(id)',
+        'color': '#e8f4ff',
+        'font-size': '11px',
+        'font-family': 'Space Mono, monospace',
+        'font-weight': '700',
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'width': '64px',
+        'height': '64px',
+        'text-wrap': 'wrap',
+        'text-max-width': '58px',
+        'text-background-color': '#05091a',
+        'text-background-opacity': 0.75,
+        'text-background-padding': '3px',
+        'text-background-shape': 'roundrectangle',
+      }
+    },
+    {
+      selector: 'edge',
+      style: {
+        'width': 1.5,
+        'line-color': '#1a4060',
+        'target-arrow-color': '#1a4060',
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'bezier',
+        'opacity': 1,
+        'label': 'data(label)',
+        'font-size': '9px',
+        'font-family': 'Space Mono, monospace',
+        'color': '#7a90c0',
+        'text-rotation': 'autorotate',
+        'text-background-color': '#05091a',
+        'text-background-opacity': 0.9,
+        'text-background-padding': '2px',
+        'text-background-shape': 'roundrectangle',
+      }
+    },
+    {
+      selector: '.highlighted',
+      style: {
+        'background-color': '#2a0415',
+        'background-opacity': 0.95,
+        'border-color': '#ff3f6c',
+        'border-width': 2.5,
+        'shadow-blur': 18,
+        'shadow-color': '#ff3f6c',
+        'shadow-opacity': 0.7,
+        'shadow-offset-x': 0,
+        'shadow-offset-y': 0,
+        'line-color': '#ff3f6c',
+        'target-arrow-color': '#ff3f6c',
+        'color': '#ffffff',
+        'text-background-color': '#2a0415',
+        'text-background-opacity': 0.9,
+        'width': 'mapData(degree, 1, 10, 64, 92)',
+        'height': 'mapData(degree, 1, 10, 64, 92)'
+      }
+    },
+    {
+      selector: '.neighbor',
+      style: {
+        'background-color': '#140d22',
+        'background-opacity': 0.92,
+        'border-color': '#7b5ea7',
+        'border-width': 2,
+        'shadow-blur': 12,
+        'shadow-color': '#7b5ea7',
+        'shadow-opacity': 0.5,
+        'shadow-offset-x': 0,
+        'shadow-offset-y': 0,
+        'color': '#e0d0ff',
+        'text-background-color': '#140d22',
+        'text-background-opacity': 0.85,
+      }
+    },
+    {
+      selector: '.faded',
+      style: { 'opacity': 0.35 }
+    },
+    {
+      selector: '.cursor-hover',
+      style: {
+        'background-color': '#1a1500',
+        'background-opacity': 0.92,
+        'border-color': '#ffe566',
+        'border-width': 2.5,
+        'shadow-blur': 18,
+        'shadow-color': '#ffe566',
+        'shadow-opacity': 0.75,
+        'shadow-offset-x': 0,
+        'shadow-offset-y': 0,
+        'color': '#fff8cc',
+        'text-background-color': '#1a1500',
+        'text-background-opacity': 0.9,
+      }
+    }
+  ],
+  layout: { name: 'preset' },
+  wheelSensitivity: 0.3
+});
+
+// Gesture cursor state
+const gestCursor = document.getElementById('gestCursor');
+let hoveredNode = null;
+
+// Track zoom for indicator
+cy.on('zoom', () => {
+  document.getElementById('zoomVal').textContent = cy.zoom().toFixed(2);
+});
+
+// ── CSV loading ───────────────────────────────────────────────────────────────
+document.getElementById('csvFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: r => loadGraph(r.data)
+  });
+});
+
+function loadGraph(rows) {
+  cy.elements().remove();
+  document.getElementById('emptyState').style.display = 'none';
+
+  const seen = new Set();
+  const els  = [];
+
+  rows.forEach(row => {
+    const src = (row.source || '').trim();
+    const tgt = (row.target || '').trim();
+    const rel = (row.relationship || '').trim();
+    if (!src || !tgt) return;
+
+    if (!seen.has(src)) { els.push({ data: { id: src } }); seen.add(src); }
+    if (!seen.has(tgt)) { els.push({ data: { id: tgt } }); seen.add(tgt); }
+
+    // handle duplicate edges
+    const eid = `${src}__${tgt}__${rel}`;
+    if (!seen.has(eid)) {
+      els.push({ data: { id: eid, source: src, target: tgt, label: rel } });
+      seen.add(eid);
+    }
+  });
+
+  cy.add(els);
+
+  // Size nodes by degree
+  cy.nodes().forEach(n => {
+    const deg = n.degree();
+    const sz  = Math.max(50, Math.min(100, 40 + deg * 8));
+    n.style({ width: sz + 'px', height: sz + 'px' });
+  });
+
+  runLayout('cose', document.querySelector('.layout-btn.active'));
+
+  // Update stats
+  document.getElementById('nodeCount').textContent = cy.nodes().length;
+  document.getElementById('edgeCount').textContent = cy.edges().length;
+  document.getElementById('stats').style.display = 'flex';
+}
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+function runLayout(name, btn) {
+  document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const opts = {
+    cose:        { name: 'cose', idealEdgeLength: 140, nodeRepulsion: 9000, animate: true, animationDuration: 800 },
+    circle:      { name: 'circle', animate: true, animationDuration: 600 },
+    grid:        { name: 'grid',   animate: true, animationDuration: 600 },
+    breadthfirst:{ name: 'breadthfirst', directed: true, animate: true, animationDuration: 600 },
+    concentric:  { name: 'concentric', animate: true, animationDuration: 600 }
+  };
+  cy.layout(opts[name] || opts.cose).run();
+}
+
+// ── Node card helpers ─────────────────────────────────────────────────────────
+function openNodeCard(node) {
+  const edges = node.connectedEdges();
+  const rels  = edges.map(edge =>
+    edge.source().id() === node.id()
+      ? `→ <b style="color:var(--text)">${edge.target().id()}</b> <span style="color:var(--muted)">(${edge.data('label')})</span>`
+      : `← <b style="color:var(--text)">${edge.source().id()}</b> <span style="color:var(--muted)">(${edge.data('label')})</span>`
+  ).join('<br>');
+
+  document.getElementById('cardName').textContent = node.id();
+  document.getElementById('cardMeta').textContent =
+    `${node.degree()} connection${node.degree() !== 1 ? 's' : ''}`;
+  document.getElementById('cardRels').innerHTML = rels || '–';
+  document.getElementById('nodeCard').classList.add('open');
+}
+
+function closeNodeCard() {
+  document.getElementById('nodeCard').classList.remove('open');
+  cy.elements().removeClass('highlighted neighbor faded');
+}
+
+// ── Node click ────────────────────────────────────────────────────────────────
+cy.on('tap', 'node', e => {
+  const node = e.target;
+
+  // Tap an already-selected node → deselect + close card
+  if (node.hasClass('highlighted')) {
+    closeNodeCard();
+    return;
+  }
+
+  cy.elements().removeClass('highlighted neighbor faded');
+  cy.elements().addClass('faded');
+
+  node.removeClass('faded').addClass('highlighted');
+  const neighbors = node.neighborhood();
+  neighbors.nodes().removeClass('faded').addClass('neighbor');
+  neighbors.edges().removeClass('faded');
+
+  openNodeCard(node);
+});
+
+cy.on('tap', e => {
+  if (e.target === cy) closeNodeCard();
+});
+
+// ── Side panel ────────────────────────────────────────────────────────────────
+function togglePanel() {
+  document.getElementById('panel').classList.toggle('open');
+}
+
+// ── Camera background ─────────────────────────────────────────────────────────
+const camCanvas = document.getElementById('camBg');
+const camCtx    = camCanvas.getContext('2d');
+const camImg    = new Image();
+
+function resizeCam() {
+  camCanvas.width  = window.innerWidth;
+  camCanvas.height = window.innerHeight;
+}
+resizeCam();
+window.addEventListener('resize', resizeCam);
+
+camImg.onload = () => {
+  const vw = camCanvas.width, vh = camCanvas.height;
+  const iw = camImg.naturalWidth  || vw;
+  const ih = camImg.naturalHeight || vh;
+  // Cover-fit: fill the full viewport, centre-crop if aspect differs
+  const scale = Math.max(vw / iw, vh / ih);
+  const dw = iw * scale, dh = ih * scale;
+  const dx = (vw - dw) / 2,  dy = (vh - dh) / 2;
+  camCtx.clearRect(0, 0, vw, vh);
+  camCtx.imageSmoothingEnabled = true;
+  camCtx.imageSmoothingQuality = 'high';
+  camCtx.drawImage(camImg, dx, dy, dw, dh);
+};
+
+// ── WebSocket — receive gesture commands + camera frames ──────────────────────
+const gestureLog = document.getElementById('gestureLog');
+const wsDot      = document.getElementById('wsDot');
+const wsLabel    = document.getElementById('wsLabel');
+let   wsTimeout;
+
+function setGestureLog(msg) {
+  gestureLog.textContent = msg;
+  gestureLog.classList.add('active');
+  clearTimeout(wsTimeout);
+  wsTimeout = setTimeout(() => gestureLog.classList.remove('active'), 1200);
+}
+
+function connectWS() {
+  const ws = new WebSocket('ws://localhost:8765');
+
+  ws.onopen = () => {
+    wsDot.classList.add('connected');
+    wsLabel.textContent = 'gesture server ✓';
+    setGestureLog('🟢 Gesture server connected');
+  };
+
+  ws.onclose = () => {
+    wsDot.classList.remove('connected');
+    wsLabel.textContent = 'gesture server ✗';
+    gestureLog.textContent = '🔴 Gesture server disconnected — retrying…';
+    setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = () => {
+    gestureLog.textContent = '⚠️ Cannot reach gesture server (start server.py)';
+  };
+
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'frame') {
+      camImg.src = 'data:image/jpeg;base64,' + msg.data;
+    } else {
+      handleCommand(msg.command, msg.value);
+    }
+  };
+}
+
+function handleCommand(command, value) {
+  const ZOOM_MIN = 0.1;
+  const ZOOM_MAX = 5.0;
+
+  switch (command) {
+    case 'zoom_in': {
+      const z = Math.min(cy.zoom() + value, ZOOM_MAX);
+      cy.zoom({ level: z, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } });
+      setGestureLog(`🔍 Zoom in → ${z.toFixed(2)}×`);
+      break;
+    }
+    case 'zoom_out': {
+      const z = Math.max(cy.zoom() - value, ZOOM_MIN);
+      cy.zoom({ level: z, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } });
+      setGestureLog(`🔎 Zoom out → ${z.toFixed(2)}×`);
+      break;
+    }
+    case 'pan': {
+      cy.panBy({ x: value.x, y: value.y });
+      setGestureLog(`✋ Pan  dx:${value.x > 0 ? '+' : ''}${Math.round(value.x)}  dy:${value.y > 0 ? '+' : ''}${Math.round(value.y)}`);
+      break;
+    }
+    case 'fit': {
+      cy.fit(undefined, 40);
+      setGestureLog('⊡ Fit all nodes');
+      break;
+    }
+    case 'reset': {
+      cy.reset();
+      setGestureLog('↺ View reset');
+      break;
+    }
+
+    case 'cursor': {
+      if (!value || !value.active) {
+        gestCursor.style.display = 'none';
+        if (hoveredNode) { hoveredNode.removeClass('cursor-hover'); hoveredNode = null; }
+        break;
+      }
+      // Position cursor element (index tip is in normalised cam coords)
+      const vw = cy.width(), vh = cy.height();
+      const sx = value.x * vw, sy = value.y * vh;
+      gestCursor.style.left    = sx + 'px';
+      gestCursor.style.top     = sy + 'px';
+      gestCursor.style.display = 'block';
+
+      // Find nearest node in model space
+      const pan = cy.pan(), zoom = cy.zoom();
+      const mx = (sx - pan.x) / zoom, my = (sy - pan.y) / zoom;
+      let nearest = null, minD = Infinity;
+      cy.nodes().forEach(n => {
+        const p = n.position();
+        const d = Math.hypot(p.x - mx, p.y - my);
+        if (d < minD) { minD = d; nearest = n; }
+      });
+
+      const hit = nearest && minD < 80;
+      gestCursor.classList.toggle('on-node', hit);
+      if (hit && hoveredNode !== nearest) {
+        if (hoveredNode) hoveredNode.removeClass('cursor-hover');
+        nearest.addClass('cursor-hover');
+        hoveredNode = nearest;
+      } else if (!hit && hoveredNode) {
+        hoveredNode.removeClass('cursor-hover');
+        hoveredNode = null;
+      }
+      break;
+    }
+
+    case 'select': {
+      if (hoveredNode) {
+        hoveredNode.emit('tap');
+        setGestureLog(`☝ Selected: ${hoveredNode.id()}`);
+      }
+      break;
+    }
+
+    case 'load_graph': {
+      Papa.parse(value, {
+        header: true,
+        skipEmptyLines: true,
+        complete: r => {
+          loadGraph(r.data);
+          setGestureLog('📊 Graph loaded');
+        }
+      });
+      break;
+    }
+
+  }
+}
+
+// Try to connect on load
+connectWS();
+</script>
+</body>
+</html>

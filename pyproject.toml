@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openatlas"
+version = "0.1.0"
+description = "Gesture-controlled knowledge graph visualizer"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "opencv-python>=4.8.0",
+    "mediapipe>=0.10.0",
+    "websockets>=12.0",
+]
+
+[project.scripts]
+openatlas = "openatlas:run"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+openatlas = ["*.html", "*.csv"]
