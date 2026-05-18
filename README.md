@@ -2,9 +2,9 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Wave your hands at your laptop to explore a knowledge graph. That's the whole thing.
+Wave your hands at your screen to explore a knowledge graph. That's the whole thing.
 
-Uses MediaPipe to track your hands and Cytoscape.js to draw the graph. No PhD required.
+Uses MediaPipe to track your hands and Cytoscape.js to draw the graph.
 
 <a href="https://www.youtube.com/watch?v=VCilobkDwnU">
   <img src="https://img.youtube.com/vi/VCilobkDwnU/maxresdefault.jpg" width="400"/>
