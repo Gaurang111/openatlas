@@ -6,6 +6,8 @@ Wave your hands at your laptop to explore a knowledge graph. That's the whole th
 
 Uses MediaPipe to track your hands and Cytoscape.js to draw the graph. No PhD required.
 
+[![Watch the video](https://img.youtube.com/vi/VCilobkDwnU/maxresdefault.jpg)](https://www.youtube.com/watch?v=VCilobkDwnU)
+
 ---
 
 ## Just run it
